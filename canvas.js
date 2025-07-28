@@ -71,6 +71,8 @@ function willCollide(nextX, nextY) {
     );
 }
 
+let collisionUIShown = false;
+
 function gameloop() {
     let nextX = player.x;
     let nextY = player.y;
@@ -84,6 +86,13 @@ function gameloop() {
     if (!willCollide(nextX, nextY)) {
         player.x = nextX;
         player.y = nextY;
+        collisionUIShown = false; // Reset flag if not colliding
+    } else if (!collisionUIShown) {
+        // Player tried to move into the hitbox
+        dispatchEvent(searchCollision);
+        console.log("Collision with search item detected!");
+        document.getElementById('collision-ui').style.display = 'block'; // Show UI
+        collisionUIShown = true;
     }
 
     // Clamp player within world
@@ -116,7 +125,7 @@ function gameloop() {
     // Get the expanded hitbox
     const searchHitbox = getSearchHitbox();
 
-    // Check collision using the hitbox
+    // Check collision using the hitbox (use current player position)
     if (
         player.x < searchHitbox.x + searchHitbox.width &&
         player.x + player.width > searchHitbox.x &&
@@ -125,7 +134,7 @@ function gameloop() {
     )  {
         dispatchEvent(searchCollision);
         console.log("Collision with search item detected!");
-        document.getElementById('collision-ui').style.display = 'block'; // Show
+        document.getElementById('collision-ui').style.display = 'block'; // Show UI
     }
 
     // Loop
