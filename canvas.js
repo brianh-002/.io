@@ -14,6 +14,21 @@ map.src = "/Assets/Final-map.png"; // Sets the image source file for the map
 const sprite = new Image(); // Creates a new image object
 sprite.src = "/Assets/Player.png"; // Sets the image source file
 
+const spritesheet = new Image(); // Creates a new image object for the sprite sheet
+spritesheet.src = "/Assets/modelsheet.png"; // Sets the image source file for the
+
+const frames = {
+    idle: { sx: 0, sy: 0, sWidth: 64, sHeight: 64 },
+    run: { sx: 64, sy: 0, sWidth: 64, sHeight: 64 },
+    jump: { sx: 128, sy: 0, sWidth: 64, sHeight: 64 }
+}
+
+spritesheet.onload = () => {
+
+}
+
+
+
 
 
 const keys = {}; // Initializes an empty object to track key states
@@ -106,24 +121,11 @@ function gameloop() {
         player.x < searchHitbox.x + searchHitbox.width &&
         player.x + player.width > searchHitbox.x &&
         player.y < searchHitbox.y + searchHitbox.height &&
-        player.y + player.height > searchHitbox.y &&
-        
-
-    ) {
-        dispatchEvent(searchCollision);
-        console.log("Collision with search item detected!");
-        
-    }
-
-    if (
-        player.x < searchHitbox.x + searchHitbox.width &&
-        player.x + player.width > searchHitbox.x &&
-        player.y < searchHitbox.y + searchHitbox.height &&
         player.y + player.height > searchHitbox.y
     )  {
         dispatchEvent(searchCollision);
         console.log("Collision with search item detected!");
-        document.getElementById('collision-ui').style.display = 'block'; // Show UI
+        document.getElementById('collision-ui').style.display = 'block'; // Show
     }
 
     // Loop
