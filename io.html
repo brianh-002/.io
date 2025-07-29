@@ -22,5 +22,10 @@
         You found a SearchItem!!! <br> Click E to Search
         <button onclick="document.getElementById('collision-ui').style.display='none'">Close</button>
     </div>
+    <div id="inventory-ui" style="display:none; position:fixed; top:80px; left:50%; transform:translateX(-50%); background:#fff; border:2px solid #333; padding:20px; z-index:20; min-width:240px; text-align:center;">
+        <h3>Inventory</h3>
+        <div id="inventory-list" style="display:grid; grid-template-columns: repeat(3, 80px); gap:16px; justify-content:center; margin:0 auto;"></div>
+        <button onclick="document.getElementById('inventory-ui').style.display='none'">Close</button>
+    </div>
 </body>
 </html>
