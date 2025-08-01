@@ -173,6 +173,35 @@ function showInventory() {
     inventoryUI.style.display = 'block';
 }
 
+// Evolution requirement: must have at least 1 "Fleckmite-Head"
+function canEvolve() {
+    const evoItem = inventory.find(i => i.name === "Fleckmite-Head" && i.count > 0);
+    return evoItem !== undefined;
+}
+
+// Evolve player function
+function evolvePlayer() {
+    // Change player stats
+    player.width = 120;
+    player.height = 120;
+    player.speed = 12;
+
+    // Change player image (use your evolved sprite)
+    sprite.src = "/Assets/fleckmite-Head.png";
+
+    // Remove one Fleckmite-Head from inventory
+    const evoItem = inventory.find(i => i.name === "Fleckmite-Head");
+    if (evoItem) {
+        evoItem.count--;
+        if (evoItem.count <= 0) {
+            const idx = inventory.indexOf(evoItem);
+            inventory.splice(idx, 1);
+        }
+    }
+
+    alert("Your player has evolved!");
+}
+
 // Main game loop
 function gameloop() {
     if (!paused) {
@@ -221,7 +250,7 @@ function gameloop() {
 
     // Draw player (adjust for camera)
     ctx.drawImage(sprite, player.x - camera.x, player.y - camera.y, player.width, player.height);
-
+    
     // Draw search item (visual size stays the same)
     ctx.drawImage(searchItem, search.x - camera.x, search.y - camera.y, search.width, search.height);
 
@@ -246,6 +275,11 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'q' || e.key === 'Q') {
         e.preventDefault();
         showInventory();
+    }
+
+    // Press 'F' to evolve if requirements are met
+    if ((e.key === 'f' || e.key === 'F') && canEvolve()) {
+        evolvePlayer();
     }
 });
 
