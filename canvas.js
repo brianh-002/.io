@@ -1,247 +1,141 @@
-console.log("Hello, World!"); // Prints a message to the console
+console.log("Hello, World!");
 
-var canvas = document.querySelector("canvas"); // Gets the first <canvas> element from the page
+var canvas = document.querySelector("canvas");
 
 const worldWidth = 6000;
 const worldHeight = 3000;
-canvas.width = window.innerWidth; // Sets canvas width to the window's width
-canvas.height = window.innerHeight; // Sets canvas height to the window's height
-const ctx = canvas.getContext("2d"); // Gets the 2D drawing context for the canvas
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const ctx = canvas.getContext("2d");
 
-const map = new Image(); // Creates a new image object for the map
-map.src = "/Assets/Final-map.png"; // Sets the image source file for the map
+const map = new Image();
+map.src = "/Assets/Final-map.png";
 
-const sprite = new Image(); // Creates a new image object
-sprite.src = "/Assets/Player.png"; // Sets the image source file
+const sprite = new Image();
+sprite.src = "/Assets/Player.png";
 
-const spritesheet = new Image(); // Creates a new image object for the sprite sheet
-spritesheet.src = "/Assets/modelsheet.png"; // Sets the image source file for the sprite sheet
+const keys = {};
 
-const frames = {
-    idle: { sx: 0, sy: 0, sWidth: 64, sHeight: 64 },
-    run: { sx: 64, sy: 0, sWidth: 64, sHeight: 64 },
-    jump: { sx: 128, sy: 0, sWidth: 64, sHeight: 64 }
-}
+const player = { x: 500, y: 500, width: 100, height: 100, speed: 8 };
+const camera = { x: 0, y: 0 };
 
-spritesheet.onload = () => {
-    // You can add code here to run when the spritesheet loads
-}
+const bugItems = [];
+const bugItemImage = new Image();
+bugItemImage.src = "/Assets/Player.png";
 
-const keys = {}; // Initializes an empty object to track key states
-
-const player = { x: 500, y: 500, width: 100, height: 100, speed: 8 }; // Player properties
-const camera = { x: 0, y: 0 }; // Camera position
-
-const searchItem = new Image(); // Creates a new image object for the search item
-searchItem.src = "/Assets/PotOfGreed.png"; // Sets the image source file for the search item
-const search = { x: 800, y: 500, width: 200, height: 200, collision: true }; // Defines the search item properties
-
-const inventory = []; // Player's inventory array
-
-const searchCollision = new Event("collision", { 
-    bubbles: true, 
-    cancelable: true
-}); // Custom event for collision
-searchCollision.detail = { type: "search" };
-
-// Define hitbox size offsets for the search item
-const hitboxOffset = 50; // how much bigger on each side
-
-// Returns the expanded hitbox for the search item
-function getSearchHitbox() {
-    return {
-        x: search.x - hitboxOffset,
-        y: search.y - hitboxOffset,
-        width: search.width + hitboxOffset * 2,
-        height: search.height + hitboxOffset * 2
-    };
-}
-
-// Checks if the player will collide with the search item's hitbox
-function willCollide(nextX, nextY) {
-    const hitbox = getSearchHitbox();
-    return (
-        nextX < hitbox.x + hitbox.width &&
-        nextX + player.width > hitbox.x &&
-        nextY < hitbox.y + hitbox.height &&
-        nextY + player.height > hitbox.y
-    );
-}
-
-let collisionUIShown = false; // Tracks if the collision UI is currently shown
-let paused = false; // Game paused state
-
-// Example items for inventory
-const items = [
-    { name: "Fleckmite-Head", type: "evo", src: "/Assets/Fleckmite-Head.png" },
-    { name: "Mana Potion", type: "consumable", src: "/Assets/ManaPotion.png" },
-    { name: "Mystery Item", type: "mystery", src: "" }
+// Define item types with associated images and bug counts
+const itemTypes = [
+    { name: "End-Part", image: "/Assets/End-Part.png", bugs: 1 },
+    { name: "Mid-Part", image: "/Assets/Mid-Part.png", bugs: 3 },
+    { name: "Head", image: "/Assets/Head.png", bugs: 5 }
 ];
 
-// Try to add an item to inventory with a chance
-function trySearchItem() {
-    if (Math.random() < 0.5) {
-        const item = items[Math.floor(Math.random() * items.length)];
-        // Check if item already exists in inventory
-        const found = inventory.find(i => i.name === item.name);
-        if (found) {
-            found.count = (found.count || 1) + 1;
-        } else {
-            inventory.push({ ...item, count: 1 });
+// Generate random bug items on the map
+function spawnBugItems(count) {
+    bugItems.length = 0;
+    // Track how many of each type have been spawned
+    const typeCounts = {};
+    itemTypes.forEach(type => typeCounts[type.name] = 0);
+
+    let spawned = 0;
+    while (spawned < count) {
+        const type = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+        if (typeCounts[type.name] < 10) { // Cap at 10 per type
+            bugItems.push({
+                x: Math.random() * (worldWidth - 32),
+                y: Math.random() * (worldHeight - 32),
+                width: 32,
+                height: 32,
+                collected: false,
+                bugs: type.bugs,
+                image: type.image
+            });
+            typeCounts[type.name]++;
+            spawned++;
         }
-        alert("You found: " + item.name + "!\nInventory: " + inventory.map(i => `${i.name} x${i.count || 1}`).join(", "));
-    } else {
-        alert("Nothing found this time!");
+        // If all types are capped, break to avoid infinite loop
+        if (Object.values(typeCounts).every(v => v >= 10)) break;
     }
-    document.getElementById('collision-ui').style.display = 'none';
-    collisionUIShown = false;
 }
+spawnBugItems(30);
 
-// Show inventory UI
-function showInventory() {
-    const inventoryUI = document.getElementById('inventory-ui');
-    const inventoryList = document.getElementById('inventory-list');
-    inventoryList.innerHTML = "";
+const swarm = []; // Each entry is a bug sprite position
 
-    if (inventory.length === 0) {
-        inventoryList.innerHTML = "<div style='grid-column: span 3;'>(Empty)</div>";
-    } else {
-        inventory.forEach(item => {
-            // Outer wrapper for cell and name
-            const wrapper = document.createElement('div');
-            wrapper.style.display = "flex";
-            wrapper.style.flexDirection = "column";
-            wrapper.style.alignItems = "center";
+// Add a starting bug to the swarm
+swarm.push({ x: player.x, y: player.y });
 
-            // The cell (image, badge, etc.)
-            const cell = document.createElement('div');
-            cell.style.display = "flex";
-            cell.style.flexDirection = "column";
-            cell.style.alignItems = "center";
-            cell.style.justifyContent = "center";
-            cell.style.background = "transparent"; // Make cell background invisible
-            cell.style.border = "none";            // Remove border
-            cell.style.borderRadius = "0";         // Remove border radius
-            cell.style.padding = "0";              // Remove extra padding
-            cell.style.minHeight = "0";
-            cell.style.width = "48px";
-            cell.style.height = "48px";
-            cell.style.position = "relative";
+// Collect bug items that the player collides with
+function collectBugItems() {
+    bugItems.forEach(bug => {
+        if (!bug.collected &&
+            player.x < bug.x + bug.width &&
+            player.x + player.width > bug.x &&
+            player.y < bug.y + bug.height &&
+            player.y + player.height > bug.y
+        ) {
+            bug.collected = true;
+            addBugToSwarm(bug.bugs);
 
-            // Item image
-            if (item.src) {
-                const img = document.createElement('img');
-                img.src = item.src;
-                img.alt = item.name;
-                img.style.width = "48px";
-                img.style.height = "48px";
-                img.style.objectFit = "contain";
-                cell.appendChild(img);
-
-                // Quantity badge
-                if (item.count && item.count > 1) {
-                    const badge = document.createElement('div');
-                    badge.textContent = item.count + "x";
-                    badge.style.position = "absolute";
-                    badge.style.top = "4px";
-                    badge.style.right = "8px";
-                    badge.style.background = "rgba(0,0,0,0.7)";
-                    badge.style.color = "#fff";
-                    badge.style.fontSize = "13px";
-                    badge.style.padding = "2px 6px";
-                    badge.style.borderRadius = "10px";
-                    badge.style.pointerEvents = "none";
-                    cell.appendChild(badge);
-                }
-            }
-
-            // Append cell to wrapper
-            wrapper.appendChild(cell);
-
-            // Item name (outside the cell, below)
-            const name = document.createElement('div');
-            name.textContent = item.name;
-            name.style.marginTop = "6px";
-            name.style.fontSize = "14px";
-            name.style.textAlign = "center";
-            name.style.color = "#222";
-            wrapper.appendChild(name);
-
-            inventoryList.appendChild(wrapper);
-        });
-    }
-    inventoryUI.style.display = 'block';
-}
-
-// Evolution requirement: must have at least 1 "Fleckmite-Head"
-function canEvolve() {
-    const evoItem = inventory.find(i => i.name === "Fleckmite-Head" && i.count > 0);
-    return evoItem !== undefined;
-}
-
-// Evolve player function
-function evolvePlayer() {
-    // Change player stats
-    player.width = 120;
-    player.height = 120;
-    player.speed = 12;
-
-    // Change player image (use your evolved sprite)
-    sprite.src = "/Assets/fleckmite-Head.png";
-
-    // Remove one Fleckmite-Head from inventory
-    const evoItem = inventory.find(i => i.name === "Fleckmite-Head");
-    if (evoItem) {
-        evoItem.count--;
-        if (evoItem.count <= 0) {
-            const idx = inventory.indexOf(evoItem);
-            inventory.splice(idx, 1);
+            // Respawn the item at a new random location with the same type
+            bug.x = Math.random() * (worldWidth - bug.width);
+            bug.y = Math.random() * (worldHeight - bug.height);
+            bug.collected = false;
         }
-    }
+    });
+}
 
-    alert("Your player has evolved!");
+// Add a bug at a random offset around the player
+function addBugToSwarm(count) {
+    for (let i = 0; i < count; i++) {
+        let last = swarm.length > 0 ? swarm[swarm.length - 1] : player;
+        swarm.push({ x: last.x, y: last.y });
+    }
+}
+
+// Draw swarm of bugs around player
+function drawSwarm() {
+    // The first bug follows the player
+    if (swarm.length > 0) {
+        swarm[0].x += (player.x - swarm[0].x) * 0.2;
+        swarm[0].y += (player.y - swarm[0].y) * 0.2;
+        ctx.drawImage(bugItemImage, swarm[0].x - camera.x, swarm[0].y - camera.y, 32, 32);
+    }
+    // Each subsequent bug follows the one before it
+    for (let i = 1; i < swarm.length; i++) {
+        swarm[i].x += (swarm[i - 1].x - swarm[i].x) * 0.2;
+        swarm[i].y += (swarm[i - 1].y - swarm[i].y) * 0.2;
+        ctx.drawImage(bugItemImage, swarm[i].x - camera.x, swarm[i].y - camera.y, 32, 32);
+    }
 }
 
 // Main game loop
 function gameloop() {
-    if (!paused) {
-        let nextX = player.x;
-        let nextY = player.y;
+    let nextX = player.x;
+    let nextY = player.y;
 
-        if (keys['ArrowUp']) nextY -= player.speed;
-        if (keys['ArrowDown']) nextY += player.speed;
-        if (keys['ArrowRight']) nextX += player.speed;
-        if (keys['ArrowLeft']) nextX -= player.speed;
+    if (keys['ArrowUp']) nextY -= player.speed;
+    if (keys['ArrowDown']) nextY += player.speed;
+    if (keys['ArrowRight']) nextX += player.speed;
+    if (keys['ArrowLeft']) nextX -= player.speed;
 
-        // Only move if not colliding with search item
-        if (!willCollide(nextX, nextY)) {
-            player.x = nextX;
-            player.y = nextY;
-            collisionUIShown = false; // Reset flag if not colliding
-        } else if (!collisionUIShown) {
-            // Player tried to move into the hitbox
-            dispatchEvent(searchCollision);
-            console.log("Collision with search item detected!");
-            document.getElementById('collision-ui').style.display = 'block'; // Show UI
-            collisionUIShown = true;
-        }
+    player.x = nextX;
+    player.y = nextY;
 
-        // Clamp player within world
-        if (player.x < 0) player.x = 0;
-        if (player.y < 0) player.y = 0;
-        if (player.x > worldWidth - player.width) player.x = worldWidth - player.width;
-        if (player.y > worldHeight - player.height) player.y = worldHeight - player.height;
+    // Clamp player within world
+    if (player.x < 0) player.x = 0;
+    if (player.y < 0) player.y = 0;
+    if (player.x > worldWidth - player.width) player.x = worldWidth - player.width;
+    if (player.y > worldHeight - player.height) player.y = worldHeight - player.height;
 
-        // Update camera to center on player
-        camera.x = player.x - canvas.width / 2;
-        camera.y = player.y - canvas.height / 2;
+    // Update camera to center on player
+    camera.x = player.x - canvas.width / 2;
+    camera.y = player.y - canvas.height / 2;
 
-        // Clamp camera within world
-        if (camera.x < 0) camera.x = 0;
-        if (camera.y < 0) camera.y = 0;
-        if (camera.x > worldWidth - canvas.width) camera.x = worldWidth - canvas.width;
-        if (camera.y > worldHeight - canvas.height) camera.y = worldHeight - canvas.height;
-    }
+    // Clamp camera within world
+    if (camera.x < 0) camera.x = 0;
+    if (camera.y < 0) camera.y = 0;
+    if (camera.x > worldWidth - canvas.width) camera.x = worldWidth - canvas.width;
+    if (camera.y > worldHeight - canvas.height) camera.y = worldHeight - canvas.height;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -249,12 +143,21 @@ function gameloop() {
     ctx.drawImage(map, -camera.x, -camera.y, worldWidth, worldHeight);
 
     // Draw player (adjust for camera)
-    ctx.drawImage(sprite, player.x - camera.x, player.y - camera.y, player.width, player.height);
-    
-    // Draw search item (visual size stays the same)
-    ctx.drawImage(searchItem, search.x - camera.x, search.y - camera.y, search.width, search.height);
+    // ctx.drawImage(sprite, player.x - camera.x, player.y - camera.y, player.width, player.height);
 
-    // Loop
+    collectBugItems(); // Check for bug collection
+
+    drawSwarm(); // Draw bugs around player
+
+    // Draw bug items on map
+    bugItems.forEach(bug => {
+        if (!bug.collected) {
+            const img = new Image();
+            img.src = bug.image;
+            ctx.drawImage(img, bug.x - camera.x, bug.y - camera.y, bug.width, bug.height);
+        }
+    });
+
     requestAnimationFrame(gameloop);
 }
 
@@ -262,27 +165,9 @@ sprite.onload = () => {
     gameloop();
 };
 
-// Unified keydown/keyup logic for all controls
 document.addEventListener('keydown', function(e) {
     keys[e.key] = true;
-
-    // If E is pressed and UI is shown, try to add item
-    if ((e.key === 'e' || e.key === 'E') && collisionUIShown) {
-        trySearchItem();
-    }
-
-    // Show inventory on Q (prevent default if needed)
-    if (e.key === 'q' || e.key === 'Q') {
-        e.preventDefault();
-        showInventory();
-    }
-
-    // Press 'F' to evolve if requirements are met
-    if ((e.key === 'f' || e.key === 'F') && canEvolve()) {
-        evolvePlayer();
-    }
 });
-
 document.addEventListener('keyup', function(e) {
     keys[e.key] = false;
 });
