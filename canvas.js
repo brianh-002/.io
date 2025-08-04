@@ -16,8 +16,10 @@ sprite.src = "/Assets/Player.png";
 
 const keys = {};
 
-const player = { x: 500, y: 500, width: 100, height: 100, speed: 8 };
+const player = { x: 500, y: 500, width: 32, height: 32, speed: 8 };
 const camera = { x: 0, y: 0 };
+player.evoStage = 0;//////////////////
+
 
 const bugItems = [];
 const bugItemImage = new Image();
@@ -84,29 +86,99 @@ function collectBugItems() {
     });
 }
 
-// Add a bug at a random offset around the player
 function addBugToSwarm(count) {
     for (let i = 0; i < count; i++) {
         let last = swarm.length > 0 ? swarm[swarm.length - 1] : player;
-        swarm.push({ x: last.x, y: last.y });
+        swarm.push({ 
+            x: last.x, 
+            y: last.y, 
+            width: player.width,    // match player size
+            height: player.height,
+            image: sprite.src       // match player image
+        });
     }
 }
 
+
 // Draw swarm of bugs around player
 function drawSwarm() {
-    // The first bug follows the player
-    if (swarm.length > 0) {
-        swarm[0].x += (player.x - swarm[0].x) * 0.2;
-        swarm[0].y += (player.y - swarm[0].y) * 0.2;
-        ctx.drawImage(bugItemImage, swarm[0].x - camera.x, swarm[0].y - camera.y, 32, 32);
-    }
-    // Each subsequent bug follows the one before it
-    for (let i = 1; i < swarm.length; i++) {
-        swarm[i].x += (swarm[i - 1].x - swarm[i].x) * 0.2;
-        swarm[i].y += (swarm[i - 1].y - swarm[i].y) * 0.2;
-        ctx.drawImage(bugItemImage, swarm[i].x - camera.x, swarm[i].y - camera.y, 32, 32);
+    const attractionStrength = 0.1;  // Pull toward player
+    const minDistance = 100;          // Personal space radius
+
+    for (let i = 0; i < swarm.length; i++) {
+        const bug = swarm[i];
+
+        // === GRAVITY-LIKE ATTRACTION TO PLAYER ===
+        const dx = player.x - bug.x;
+        const dy = player.y - bug.y;
+        const distanceToPlayer = Math.hypot(dx, dy);
+
+        if (distanceToPlayer > 1) {
+            const pullX = dx * attractionStrength;
+            const pullY = dy * attractionStrength;
+
+            bug.x += pullX;
+            bug.y += pullY;
+        }
+
+        // === BUG-TO-BUG COLLISION REPULSION ===
+        for (let j = 0; j < swarm.length; j++) {
+            if (i === j) continue;
+
+            const other = swarm[j];
+            const ox = bug.x - other.x;
+            const oy = bug.y - other.y;
+            const dist = Math.hypot(ox, oy);
+
+            if (dist > 0 && dist < minDistance) {
+                const overlap = (minDistance - dist) / minDistance;
+                bug.x += (ox / dist) * overlap * 1.5;
+                bug.y += (oy / dist) * overlap * 1.5;
+            }
+        }
+
+        // === DRAW THE BUG ===
+        ctx.drawImage(bugItemImage, bug.x - camera.x, bug.y - camera.y, 32, 32);
     }
 }
+
+
+
+
+
+
+function evolvePlayer() {
+    if (player.evoStage === undefined) player.evoStage = 0;
+
+    const bugCount = swarm.length;
+
+    if (player.evoStage === 0 && bugCount >= 30) {
+        player.width = 64;
+        player.height = 64;
+        player.speed = 10;
+        sprite.src = "/Assets/fleckmite-Head.png";
+        bugItemImage.src = "/Assets/fleckmite-Head.png";  // Change swarm bug image too
+        swarm.length = 1; // Reset swarm to one bug centered on player
+        swarm[0] = { x: player.x, y: player.y };
+        player.evoStage = 1;
+        console.log("Evolved to Stage 1! Bugs collected:", bugCount);
+    } else if (player.evoStage === 1 && bugCount >= 60) {
+        player.width = 120;
+        player.height = 120;
+        player.speed = 8;
+        sprite.src = "/Assets/final-evo.png";
+        bugItemImage.src = "/Assets/final-bug.png"; // Final bug image
+        swarm.length = 1;
+        swarm[0] = { x: player.x, y: player.y };
+        player.evoStage = 2;
+        console.log("Evolved to Stage 2! Bugs collected:", bugCount);
+    } else if (player.evoStage === 2) {
+        console.log("Already at max evolution.");
+    } else {
+        console.log(`Need more bugs to evolve. Current swarm: ${bugCount}`);
+    }
+}
+
 
 // Main game loop
 function gameloop() {
@@ -143,9 +215,11 @@ function gameloop() {
     ctx.drawImage(map, -camera.x, -camera.y, worldWidth, worldHeight);
 
     // Draw player (adjust for camera)
-    // ctx.drawImage(sprite, player.x - camera.x, player.y - camera.y, player.width, player.height);
+    ctx.drawImage(sprite, player.x - camera.x, player.y - camera.y, player.width, player.height);
 
     collectBugItems(); // Check for bug collection
+
+    evolvePlayer(); // Check if player can evolve
 
     drawSwarm(); // Draw bugs around player
 
@@ -171,6 +245,5 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('keyup', function(e) {
     keys[e.key] = false;
 });
-
 
 
