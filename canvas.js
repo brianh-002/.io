@@ -86,19 +86,13 @@ function collectBugItems() {
     });
 }
 
+// Add a bug at a random offset around the player
 function addBugToSwarm(count) {
     for (let i = 0; i < count; i++) {
         let last = swarm.length > 0 ? swarm[swarm.length - 1] : player;
-        swarm.push({ 
-            x: last.x, 
-            y: last.y, 
-            width: player.width,    // match player size
-            height: player.height,
-            image: sprite.src       // match player image
-        });
+        swarm.push({ x: last.x, y: last.y });
     }
 }
-
 
 // Draw swarm of bugs around player
 function drawSwarm() {
@@ -215,7 +209,7 @@ function gameloop() {
     ctx.drawImage(map, -camera.x, -camera.y, worldWidth, worldHeight);
 
     // Draw player (adjust for camera)
-    ctx.drawImage(sprite, player.x - camera.x, player.y - camera.y, player.width, player.height);
+    // ctx.drawImage(sprite, player.x - camera.x, player.y - camera.y, player.width, player.height);
 
     collectBugItems(); // Check for bug collection
 
