@@ -1,0 +1,9 @@
+body {
+    background-image: url(Assets/Start-bg.png);
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+}
+
