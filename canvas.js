@@ -65,19 +65,42 @@ let splitCooldown = 0;
 // Collect bug items that the player collides with
 function collectBugItems() {
     bugItems.forEach(bug => {
-        if (!bug.collected &&
-            player.x < bug.x + bug.width &&
-            player.x + player.width > bug.x &&
-            player.y < bug.y + bug.height &&
-            player.y + player.height > bug.y
-        ) {
-            bug.collected = true;
-            addBugToSwarm(bug.bugs);
+        if (!bug.collected) {
+            // Check collision with all bugs in the mainSwarm
+            mainSwarm.forEach(swarmBug => {
+                if (
+                    swarmBug.x < bug.x + bug.width &&
+                    swarmBug.x + player.width > bug.x &&
+                    swarmBug.y < bug.y + bug.height &&
+                    swarmBug.y + player.height > bug.y
+                ) {
+                    bug.collected = true;
+                    addBugToSwarm(bug.bugs);
 
-            // Respawn the item at a new random location with the same type
-            bug.x = Math.random() * (worldWidth - bug.width);
-            bug.y = Math.random() * (worldHeight - bug.height);
-            bug.collected = false;
+                    // Respawn the item at a new random location with the same type
+                    bug.x = Math.random() * (worldWidth - bug.width);
+                    bug.y = Math.random() * (worldHeight - bug.height);
+                    bug.collected = false;
+                }
+            });
+
+            // Check collision with all bugs in the splitSwarm
+            splitSwarm.forEach(swarmBug => {
+                if (
+                    swarmBug.x < bug.x + bug.width &&
+                    swarmBug.x + player.width > bug.x &&
+                    swarmBug.y < bug.y + bug.height &&
+                    swarmBug.y + player.height > bug.y
+                ) {
+                    bug.collected = true;
+                    addBugToSwarm(bug.bugs);
+
+                    // Respawn the item at a new random location with the same type
+                    bug.x = Math.random() * (worldWidth - bug.width);
+                    bug.y = Math.random() * (worldHeight - bug.height);
+                    bug.collected = false;
+                }
+            });
         }
     });
 }
@@ -232,7 +255,7 @@ sprite.onload = () => {
 };
 
 // Input handling
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     keys[e.key] = true;
 
     if (e.code === "Space" && !hasSplit && mainSwarm.length > 1) {
@@ -246,11 +269,15 @@ document.addEventListener('keydown', function(e) {
         const dy = (keys['ArrowDown'] ? 1 : 0) - (keys['ArrowUp'] ? 1 : 0);
 
         const magnitude = Math.hypot(dx, dy) || 1; // Prevent divide by 0
-        const pushDistance = 150;
+        const pushDistance = 300; // Increased push distance
 
         for (let bug of splitSwarm) {
             bug.x += (dx / magnitude) * pushDistance;
             bug.y += (dy / magnitude) * pushDistance;
         }
     }
+});
+
+document.addEventListener('keyup', function (e) {
+    keys[e.key] = false; // Reset the key state when released
 });
