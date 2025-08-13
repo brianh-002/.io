@@ -1,0 +1,5 @@
+
+ctechmini23d@CTech23Ds-Mac-mini .io % rm -rf node_modules
+npm install
+ctechmini23d@CTech23Ds-Mac-mini .io %rm -rf node_modules
+ctechmini23d@CTech23Ds-Mac-mini .io % npm run build:css
