@@ -22,6 +22,10 @@ const bugItems = [];
 const bugItemImage = new Image();
 bugItemImage.src = "/Assets/Player.png";
 
+// Timer variables
+let timer = 90; // 2 minutes in seconds
+let timerInterval;
+
 // Define item types with associated images and bug counts
 const itemTypes = [
     { name: "End-Part", image: "/Assets/End-Part.png", bugs: 1 },
@@ -246,12 +250,36 @@ function gameloop() {
         }
     });
 
+    // Draw the timer at the top of the screen
+    ctx.fillStyle = "black";
+    ctx.font = "24px Arial";
+    ctx.fillText(`Time Remaining: ${timer}s`, 20, 40); // Fixed position at the top-left corner of the canvas
+
     requestAnimationFrame(gameloop);
+}
+
+// Timer logic
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timer--;
+        console.log(`Time remaining: ${timer}s`);
+
+        if (timer <= 0) {
+            clearInterval(timerInterval);
+            restartGame(); // Restart the game when the timer ends
+        }
+    }, 1000); // Update every second
+}
+
+function restartGame() {
+    console.log("Time's up! Restarting the game...");
+    location.reload(); // Refresh the page to restart the game
 }
 
 // Start game when sprite loads
 sprite.onload = () => {
-    gameloop();
+    startTimer(); // Start the timer
+    gameloop();   // Start the game loop
 };
 
 // Input handling
