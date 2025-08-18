@@ -183,6 +183,7 @@ function evolvePlayer() {
         player.width = 64;
         player.height = 64;
         player.speed = 10;
+        backgroundColor = "rgba(253, 61, 202, 0.5)"; // Optional: Change background color on evolution
         sprite.src = "/Assets/fleckmite-Head.png";
         bugItemImage.src = "/Assets/fleckmite-Head.png";
         mainSwarm = [{ x: player.x, y: player.y }];
@@ -195,8 +196,8 @@ function evolvePlayer() {
         player.width = 120;
         player.height = 120;
         player.speed = 8;
-        sprite.src = "/Assets/final-evo.png";
-        bugItemImage.src = "/Assets/final-bug.png";
+        sprite.src = "/Assets/fleckmite-Head.png";
+        bugItemImage.src = "/Assets/fleckmite-Head.png";
         mainSwarm = [{ x: player.x, y: player.y }];
         splitSwarm = [];
         hasSplit = false;
@@ -207,8 +208,8 @@ function evolvePlayer() {
         player.width = 200;
         player.height = 200;
         player.speed = 6;
-        sprite.src = "/Assets/mega-evo.png"; // Add a new sprite for this stage
-        bugItemImage.src = "/Assets/mega-bug.png"; // Add a new bug image for this stage
+        sprite.src = "/Assets/fleckmite-Head.png"; // Add a new sprite for this stage
+        bugItemImage.src = "/Assets/fleckmite-Head.png"; // Add a new bug image for this stage
         mainSwarm = [{ x: player.x, y: player.y }];
         splitSwarm = [];
         hasSplit = false;
@@ -219,8 +220,8 @@ function evolvePlayer() {
         player.width = 300;
         player.height = 300;
         player.speed = 4;
-        sprite.src = "/Assets/ultimate-evo.png"; // Add a new sprite for this stage
-        bugItemImage.src = "/Assets/ultimate-bug.png"; // Add a new bug image for this stage
+        sprite.src = "/Assets/fleckmite-Head.png"; // Add a new sprite for this stage
+        bugItemImage.src = "/Assets/fleckmite-Head.png"; // Add a new bug image for this stage
         mainSwarm = [{ x: player.x, y: player.y }];
         splitSwarm = [];
         hasSplit = false;
