@@ -7,16 +7,46 @@ canvas.height = window.innerHeight;
 const ctx = canvas.getContext("2d");
 
 const map = new Image();
-map.src = "/Assets/Final-map.png";
+map.src = "./Assets/Final-map.png"; // Ensure this path is correct
+map.onerror = () => console.error("Failed to load map image.");
 
-const sprite = new Image();
-sprite.src = "/Assets/Player.png";
+const spriteSheet = new Image();
+spriteSheet.src = "./Assets/Player-SpriteSheet.png"; // Path to the sprite sheet
+spriteSheet.onerror = () => console.error("Failed to load sprite sheet.");
 
 const keys = {};
 
-const player = { x: 500, y: 500, width: 32, height: 32, speed: 8 };
+const player = { x: 500, y: 500, width: 64, height: 32, speed: 8 };
 const camera = { x: 0, y: 0 };
-player.evoStage = 0;
+
+let frameIndex = 0; // Current frame index
+const frameWidth = 64; // Width of each frame in the sprite sheet
+const frameHeight = 32; // Height of each frame in the sprite sheet
+const totalFrames = 5; // Total number of frames in the sprite sheet
+let animationSpeed = 10; // Speed of animation (lower is faster)
+let animationCounter = 0; // Counter to control animation speed
+
+function drawPlayer() {
+    // Increment animation counter
+    animationCounter++;
+    if (animationCounter >= animationSpeed) {
+        frameIndex = (frameIndex + 1) % totalFrames; // Loop through frames
+        animationCounter = 0;
+    }
+
+    // Draw the current frame of the sprite sheet
+    ctx.drawImage(
+        spriteSheet,
+        frameIndex * frameWidth, // Source X position (frame index * frame width)
+        0, // Source Y position (assuming all frames are in one row)
+        frameWidth, // Source width
+        frameHeight, // Source height
+        player.x - camera.x, // Destination X position
+        player.y - camera.y, // Destination Y position
+        player.width, // Destination width
+        player.height // Destination height
+    );
+}
 
 const bugItems = [];
 const bugItemImage = new Image();
@@ -246,38 +276,30 @@ function gameloop() {
         }
     });
 
+    // Draw the player using the sprite sheet animation
+    drawPlayer();
+
     requestAnimationFrame(gameloop);
 }
 
-// Start game when sprite loads
-sprite.onload = () => {
-    gameloop();
+// Start game when both images are loaded
+let imagesLoaded = 0;
+
+map.onload = () => {
+    imagesLoaded++;
+    if (imagesLoaded === 2) gameloop(); // Start game loop when both images are loaded
+};
+
+spriteSheet.onload = () => {
+    imagesLoaded++;
+    if (imagesLoaded === 2) gameloop(); // Start game loop when both images are loaded
 };
 
 // Input handling
 document.addEventListener('keydown', function (e) {
     keys[e.key] = true;
-
-    if (e.code === "Space" && !hasSplit && mainSwarm.length > 1) {
-        const half = Math.floor(mainSwarm.length / 2);
-        splitSwarm = mainSwarm.splice(-half);
-        hasSplit = true;
-        splitCooldown = 0;
-
-        // Push the splitSwarm forward based on current movement direction
-        const dx = (keys['ArrowRight'] ? 1 : 0) - (keys['ArrowLeft'] ? 1 : 0);
-        const dy = (keys['ArrowDown'] ? 1 : 0) - (keys['ArrowUp'] ? 1 : 0);
-
-        const magnitude = Math.hypot(dx, dy) || 1; // Prevent divide by 0
-        const pushDistance = 300; // Increased push distance
-
-        for (let bug of splitSwarm) {
-            bug.x += (dx / magnitude) * pushDistance;
-            bug.y += (dy / magnitude) * pushDistance;
-        }
-    }
 });
 
 document.addEventListener('keyup', function (e) {
-    keys[e.key] = false; // Reset the key state when released
+    keys[e.key] = false;
 });
