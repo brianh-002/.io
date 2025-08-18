@@ -183,9 +183,11 @@ function evolvePlayer() {
     const bugCount = mainSwarm.length + splitSwarm.length;
 
     if (player.evoStage === 0 && bugCount >= 30) {
+        // Stage 1 Evolution
         player.width = 64;
         player.height = 64;
         player.speed = 10;
+        backgroundColor = "rgba(253, 61, 202, 0.5)"; // Optional: Change background color on evolution
         sprite.src = "/Assets/fleckmite-Head.png";
         bugItemImage.src = "/Assets/fleckmite-Head.png";
         mainSwarm = [{ x: player.x, y: player.y }];
@@ -194,16 +196,41 @@ function evolvePlayer() {
         player.evoStage = 1;
         console.log("Evolved to Stage 1! Bugs collected:", bugCount);
     } else if (player.evoStage === 1 && bugCount >= 60) {
+        // Stage 2 Evolution
         player.width = 120;
         player.height = 120;
         player.speed = 8;
-        sprite.src = "/Assets/final-evo.png";
-        bugItemImage.src = "/Assets/final-bug.png";
+        sprite.src = "/Assets/fleckmite-Head.png";
+        bugItemImage.src = "/Assets/fleckmite-Head.png";
         mainSwarm = [{ x: player.x, y: player.y }];
         splitSwarm = [];
         hasSplit = false;
         player.evoStage = 2;
         console.log("Evolved to Stage 2! Bugs collected:", bugCount);
+    } else if (player.evoStage === 2 && bugCount >= 100) {
+        // Stage 3 Evolution
+        player.width = 200;
+        player.height = 200;
+        player.speed = 6;
+        sprite.src = "/Assets/fleckmite-Head.png"; // Add a new sprite for this stage
+        bugItemImage.src = "/Assets/fleckmite-Head.png"; // Add a new bug image for this stage
+        mainSwarm = [{ x: player.x, y: player.y }];
+        splitSwarm = [];
+        hasSplit = false;
+        player.evoStage = 3;
+        console.log("Evolved to Stage 3! Bugs collected:", bugCount);
+    } else if (player.evoStage === 3 && bugCount >= 150) {
+        // Stage 4 Evolution
+        player.width = 300;
+        player.height = 300;
+        player.speed = 4;
+        sprite.src = "/Assets/fleckmite-Head.png"; // Add a new sprite for this stage
+        bugItemImage.src = "/Assets/fleckmite-Head.png"; // Add a new bug image for this stage
+        mainSwarm = [{ x: player.x, y: player.y }];
+        splitSwarm = [];
+        hasSplit = false;
+        player.evoStage = 4;
+        console.log("Evolved to Stage 4! Bugs collected:", bugCount);
     }
 }
 
