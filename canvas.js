@@ -188,7 +188,7 @@ function evolvePlayer() {
         player.height = 64;
         player.speed = 10;
         backgroundColor = "rgba(253, 61, 202, 0.5)"; // Optional: Change background color on evolution
-        sprite.src = "/Assets/fleckmite-Head.png";
+        sprite.src = "/Assets/Player.png";
         bugItemImage.src = "/Assets/fleckmite-Head.png";
         mainSwarm = [{ x: player.x, y: player.y }];
         splitSwarm = [];
@@ -200,7 +200,7 @@ function evolvePlayer() {
         player.width = 120;
         player.height = 120;
         player.speed = 8;
-        sprite.src = "/Assets/fleckmite-Head.png";
+        sprite.src = "/Assets/Player.png";
         bugItemImage.src = "/Assets/fleckmite-Head.png";
         mainSwarm = [{ x: player.x, y: player.y }];
         splitSwarm = [];
@@ -212,7 +212,7 @@ function evolvePlayer() {
         player.width = 200;
         player.height = 200;
         player.speed = 6;
-        sprite.src = "/Assets/fleckmite-Head.png"; // Add a new sprite for this stage
+        sprite.src = "/Assets/Player.png"; // Add a new sprite for this stage
         bugItemImage.src = "/Assets/fleckmite-Head.png"; // Add a new bug image for this stage
         mainSwarm = [{ x: player.x, y: player.y }];
         splitSwarm = [];
@@ -224,7 +224,7 @@ function evolvePlayer() {
         player.width = 300;
         player.height = 300;
         player.speed = 4;
-        sprite.src = "/Assets/fleckmite-Head.png"; // Add a new sprite for this stage
+        sprite.src = "/Assets/Player.png"; // Add a new sprite for this stage
         bugItemImage.src = "/Assets/fleckmite-Head.png"; // Add a new bug image for this stage
         mainSwarm = [{ x: player.x, y: player.y }];
         splitSwarm = [];
@@ -232,6 +232,119 @@ function evolvePlayer() {
         player.evoStage = 4;
         console.log("Evolved to Stage 4! Bugs collected:", bugCount);
     }
+}
+
+// Enemy
+const enemy = {
+    x: Math.random() * worldWidth,
+    y: Math.random() * worldHeight,
+    width: 64,
+    height: 64,
+    speed: 4,
+    bugs: 20,
+    chasing: false,
+};
+
+function updateEnemy() {
+    const dx = player.x - enemy.x;
+    const dy = player.y - enemy.y;
+    const distanceToPlayer = Math.hypot(dx, dy);
+
+    if (distanceToPlayer < 300) {
+        enemy.chasing = true;
+    } else {
+        enemy.chasing = false;
+    }
+
+    if (enemy.chasing) {
+        const magnitude = Math.hypot(dx, dy) || 1;
+        enemy.x += (dx / magnitude) * enemy.speed;
+        enemy.y += (dy / magnitude) * enemy.speed;
+    } else {
+        enemy.x += (Math.random() - 0.5) * enemy.speed;
+        enemy.y += (Math.random() - 0.5) * enemy.speed;
+
+        enemy.x = Math.max(0, Math.min(enemy.x, worldWidth - enemy.width));
+        enemy.y = Math.max(0, Math.min(enemy.y, worldHeight - enemy.height));
+    }
+}
+
+function drawEnemy() {
+    ctx.fillStyle = "red";
+    ctx.fillRect(enemy.x - camera.x, enemy.y - camera.y, enemy.width, enemy.height);
+}
+
+function checkEnemyCollision() {
+    if (
+        player.x < enemy.x + enemy.width &&
+        player.x + player.width > enemy.x &&
+        player.y < enemy.y + enemy.height &&
+        player.y + player.height > enemy.y
+    ) {
+        if (mainSwarm.length > enemy.bugs) {
+            console.log("Enemy defeated!");
+            enemy.x = Math.random() * worldWidth;
+            enemy.y = Math.random() * worldHeight;
+        } else {
+            console.log("Not enough bugs to defeat the enemy!");
+        }
+    }
+}
+
+const enemySwarm = [];
+const enemyBugImage = new Image();
+enemyBugImage.src = "/Assets/alien.png"; // Use the same PNG as the player
+
+function initializeEnemySwarm() {
+    for (let i = 0; i < 20; i++) {
+        enemySwarm.push({
+            x: Math.random() * worldWidth,
+            y: Math.random() * worldHeight,
+            width: 32,
+            height: 32,
+        });
+    }
+}
+initializeEnemySwarm();
+
+function updateEnemySwarm() {
+    enemySwarm.forEach(bug => {
+        const dx = player.x - bug.x;
+        const dy = player.y - bug.y;
+        const distanceToPlayer = Math.hypot(dx, dy);
+
+        if (distanceToPlayer < 300) {
+            const magnitude = Math.hypot(dx, dy) || 1;
+            bug.x += (dx / magnitude) * 2;
+            bug.y += (dy / magnitude) * 2;
+        } else {
+            bug.x += (Math.random() - 0.5) * 2;
+            bug.y += (Math.random() - 0.5) * 2;
+
+            bug.x = Math.max(0, Math.min(bug.x, worldWidth - bug.width));
+            bug.y = Math.max(0, Math.min(bug.y, worldHeight - bug.height));
+        }
+    });
+}
+
+function drawEnemySwarm() {
+    enemySwarm.forEach(bug => {
+        ctx.drawImage(enemyBugImage, bug.x - camera.x, bug.y - camera.y, bug.width, bug.height);
+    });
+}
+
+function checkEnemySwarmCollision() {
+    enemySwarm.forEach(bug => {
+        if (
+            player.x < bug.x + bug.width &&
+            player.x + player.width > bug.x &&
+            player.y < bug.y + bug.height &&
+            player.y + player.height > bug.y
+        ) {
+            console.log("Touched by enemy swarm! Restarting the game...");
+            restartGame();
+        }
+    });
 }
 
 // Main game loop
@@ -267,6 +380,11 @@ function gameloop() {
     collectBugItems();
     evolvePlayer();
     drawSwarm();
+
+    // Update and draw the enemy swarm
+    updateEnemySwarm();
+    drawEnemySwarm();
+    checkEnemySwarmCollision();
 
     // Draw bug items
     bugItems.forEach(bug => {
