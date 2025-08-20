@@ -194,7 +194,7 @@ function evolvePlayer() {
         // Stage 1 Evolution
         player.width = 64;
         player.height = 64;
-        player.speed = 10;
+        player.speed = 6;
         sprite.src = "/Assets/Player.png";
         bugItemImage.src = "/Assets/Player.png";
         mainSwarm = [{ x: player.x, y: player.y, width: player.width, height: player.height }];
@@ -218,7 +218,7 @@ function evolvePlayer() {
         // Stage 3 Evolution
         player.width = 200;
         player.height = 200;
-        player.speed = 6;
+        player.speed = 10;
         sprite.src = "/Assets/Player.png";
         bugItemImage.src = "/Assets/Player.png";
         mainSwarm = [{ x: player.x, y: player.y, width: player.width, height: player.height }];
@@ -230,7 +230,7 @@ function evolvePlayer() {
         // Stage 4 Evolution
         player.width = 300;
         player.height = 300;
-        player.speed = 4;
+        player.speed = 12;
         sprite.src = "/Assets/Player.png";
         bugItemImage.src = "/Assets/Player.png";
         mainSwarm = [{ x: player.x, y: player.y, width: player.width, height: player.height }];
