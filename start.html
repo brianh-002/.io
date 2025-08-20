@@ -2,80 +2,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Introduction</title>
+    <title>Introduction</title>
     <link rel="stylesheet" href="start.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #008000; /* Green background */
+            color: #000; /* Black text */
+            font-family: Arial, sans-serif;
+        }
+
+        div {
+            display: flex;
+            flex-direction: column; /* Stack items vertically */
+            align-items: center; /* Center items horizontally */
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 120px;
+            font-weight: 900;
+            color: #e9b154; /* Yellow text */
+            /* border: 5px solid black;  */
+            -webkit-text-stroke-color: #000;
+            -webkit-text-stroke-width: 5px;
+            padding: 10px; /* Space between text and border */
+            margin-bottom: 50px; /* Space below the title */
+        }
+
+        button {
+            border-radius: 20px;
+            margin: 20px;
+            padding: 40px 80px;
+            font-size: 40px;
+            font-weight: bold;
+            background-color: #603d57f0; /* Text background color */
+            color: #ffffff; /* White text */
+            border: none;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        button a {
+            border-radius: 20px;
+            text-decoration: none;
+            color: rgb(250, 250, 250); /* Ensure link text is white */
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            font-size: 45px;
+            font-weight: normal;
+        }
+
+        .start-button {
+            border: 2px solid white;
+            background-color: #4a8237e2;
+            margin-bottom: 40px;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            font-size: 30px;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    
     <div>
-        <button> controls
-            <ul style="list-style-type: none; padding: 0; margin: 0; font-size: 24px; font-weight: bold;">
+        <!-- Title -->
+        <h1>SwarmKing</h1>
+
+        <!-- Start Game button -->
+        <button class="start-button">
+            <a href="io.html">Start Game</a>
+        </button>
+
+        <!-- Controls section -->
+        <button>
+            <div class="controls">
+                CONTROLS
+            </div>  
+            <ul>
                 <li>WASD to move</li>
-                <li>Space to jump</li>
-                <li>E to interact</li>
+                <li>Space to split</li>
             </ul>
         </button>
-
-        <button>
-            <a href="io.html" style="text-decoration: none; color: black; font-size: 24px; font-weight: bold;">Start Game</a>
-        </button>
     </div>
-
-    <script>
-        function evolvePlayer() {
-            const bugCount = mainSwarm.length + splitSwarm.length;
-
-            if (player.evoStage === 0 && bugCount >= 30) {
-                // Stage 1 Evolution
-                player.width = 64;
-                player.height = 64;
-                player.speed = 10;
-                sprite.src = "/Assets/fleckmite-Head.png";
-                bugItemImage.src = "/Assets/fleckmite-Head.png";
-                mainSwarm = [{ x: player.x, y: player.y }, ...mainSwarm];
-                splitSwarm = [];
-                hasSplit = false;
-                player.evoStage = 1;
-                console.log("Evolved to Stage 1! Bugs collected:", bugCount);
-            } else if (player.evoStage === 1 && bugCount >= 60) {
-                // Stage 2 Evolution
-                player.width = 120;
-                player.height = 120;
-                player.speed = 8;
-                sprite.src = "/Assets/final-evo.png";
-                bugItemImage.src = "/Assets/final-bug.png";
-                mainSwarm = [{ x: player.x, y: player.y }, ...mainSwarm];
-                splitSwarm = [];
-                hasSplit = false;
-                player.evoStage = 2;
-                console.log("Evolved to Stage 2! Bugs collected:", bugCount);
-            } else if (player.evoStage === 2 && bugCount >= 100) {
-                // Stage 3 Evolution
-                player.width = 200;
-                player.height = 200;
-                player.speed = 6;
-                sprite.src = "/Assets/mega-evo.png";
-                bugItemImage.src = "/Assets/mega-bug.png";
-                mainSwarm = [{ x: player.x, y: player.y }, ...mainSwarm];
-                splitSwarm = [];
-                hasSplit = false;
-                player.evoStage = 3;
-                console.log("Evolved to Stage 3! Bugs collected:", bugCount);
-            } else if (player.evoStage === 3 && bugCount >= 150) {
-                // Stage 4 Evolution
-                player.width = 300;
-                player.height = 300;
-                player.speed = 4;
-                sprite.src = "/Assets/ultimate-evo.png";
-                bugItemImage.src = "/Assets/ultimate-bug.png";
-                mainSwarm = [{ x: player.x, y: player.y }, ...mainSwarm];
-                splitSwarm = [];
-                hasSplit = false;
-                player.evoStage = 4;
-                console.log("Evolved to Stage 4! Bugs collected:", bugCount);
-            }
-        }
-    </script>
-
 </body>
 </html>
