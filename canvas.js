@@ -247,9 +247,11 @@ const enemy = {
     y: Math.random() * worldHeight,
     width: 200, // 2x the player's width
     height: 200, // 2x the player's height
-    speed: 4,
+    speed: 4, // Enemy speed remains constant
     bugs: 20,
     chasing: false,
+    direction: { x: 0, y: 0 },
+    directionTimer: 0,
 };
 
 function updateEnemy() {
@@ -257,20 +259,34 @@ function updateEnemy() {
     const dy = player.y - enemy.y;
     const distanceToPlayer = Math.hypot(dx, dy);
 
-    if (distanceToPlayer < 300) {
-        enemy.chasing = true;
-    } else {
+    if (player.evoStage >= 3 && distanceToPlayer < 300) {
+        // Enemy runs away from the player at evolution stage 3 or higher
         enemy.chasing = false;
-    }
-
-    if (enemy.chasing) {
-        const magnitude = Math.hypot(dx, dy) || 1;
-        enemy.x += (dx / magnitude) * enemy.speed;
-        enemy.y += (dy / magnitude) * enemy.speed;
+        const magnitude = Math.hypot(dx, dy) || 1; // Prevent divide by 0
+        enemy.x -= (dx / magnitude) * enemy.speed; // Move away from the player
+        enemy.y -= (dy / magnitude) * enemy.speed; // Move away from the player
+    } else if (distanceToPlayer < 300) {
+        // Enemy chases the player if close and player is below stage 3
+        enemy.chasing = true;
+        const magnitude = Math.hypot(dx, dy) || 1; // Prevent divide by 0
+        enemy.x += (dx / magnitude) * enemy.speed; // Move toward the player
+        enemy.y += (dy / magnitude) * enemy.speed; // Move toward the player
     } else {
-        enemy.x += (Math.random() - 0.5) * enemy.speed;
-        enemy.y += (Math.random() - 0.5) * enemy.speed;
+        // Random movement logic
+        if (enemy.directionTimer <= 0) {
+            enemy.direction = {
+                x: Math.random() * 2 - 1, // Random direction between -1 and 1
+                y: Math.random() * 2 - 1,
+            };
+            enemy.directionTimer = Math.random() * 100 + 50; // Random duration between 50 and 150 frames
+        } else {
+            enemy.directionTimer--;
+        }
 
+        enemy.x += enemy.direction.x * enemy.speed; // Use constant enemy speed
+        enemy.y += enemy.direction.y * enemy.speed; // Use constant enemy speed
+
+        // Clamp position within the world
         enemy.x = Math.max(0, Math.min(enemy.x, worldWidth - enemy.width));
         enemy.y = Math.max(0, Math.min(enemy.y, worldHeight - enemy.height));
     }
@@ -289,7 +305,13 @@ function checkEnemyCollision() {
         player.y < enemy.y + enemy.height &&
         player.y + player.height > enemy.y
     ) {
-        if (mainSwarm.length > enemy.bugs) {
+        if (player.evoStage >= 3) {
+            // Player can eat the enemy at evolution stage 3 or higher
+            console.log("Enemy eaten!");
+            totalBugsCollected += enemy.bugs; // Add enemy's bugs to total collected
+            enemy.x = Math.random() * worldWidth; // Respawn enemy at a random location
+            enemy.y = Math.random() * worldHeight;
+        } else if (mainSwarm.length > enemy.bugs) {
             console.log("Enemy defeated!");
             enemy.x = Math.random() * worldWidth;
             enemy.y = Math.random() * worldHeight;
@@ -368,15 +390,22 @@ function drawEnemySwarm() {
 }
 
 function checkEnemySwarmCollision() {
-    enemySwarm.forEach(bug => {
+    enemySwarm.forEach((bug, index) => {
         if (
             player.x < bug.x + bug.width &&
             player.x + player.width > bug.x &&
             player.y < bug.y + bug.height &&
             player.y + player.height > bug.y
         ) {
-            gameOver = true;
-            showGameOverScreen("You were eaten by the enemy!");
+            if (player.evoStage >= 3) {
+                // Player can eat swarm enemies at evolution stage 3 or higher
+                console.log("Enemy swarm bug eaten!");
+                totalBugsCollected += bug.bugs; // Add bug's bugs to total collected
+                enemySwarm.splice(index, 1); // Remove the bug from the swarm
+            } else {
+                gameOver = true;
+                showGameOverScreen("You were eaten by the enemy!");
+            }
         }
     });
 }
