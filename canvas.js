@@ -400,7 +400,9 @@ function checkEnemySwarmCollision() {
             if (player.evoStage >= 3) {
                 // Player can eat swarm enemies at evolution stage 3 or higher
                 console.log("Enemy swarm bug eaten!");
-                totalBugsCollected += bug.bugs; // Add bug's bugs to total collected
+                totalBugsCollected += 6; // Add bug's bugs to total collected
+                console.log("Bugs from this bug:", bug.bugs);
+                console.log("Total Bugs Collected:", totalBugsCollected);
                 enemySwarm.splice(index, 1); // Remove the bug from the swarm
             } else {
                 gameOver = true;
@@ -417,6 +419,7 @@ function showGameOverScreen(message) {
     ctx.fillText(message, canvas.width / 2, canvas.height / 2 - 50);
 
     // Display total bugs collected
+    console.log("Total Bugs Collected:", totalBugsCollected);
     ctx.fillText(`Total Bugs Eaten: ${totalBugsCollected}`, canvas.width / 2, canvas.height / 2);
 
     // Draw restart and menu buttons (existing logic)
@@ -485,7 +488,7 @@ function startTimer() {
         if (gameOver) return; // Stop updating if the game is over
 
         timer--;
-        console.log(`Time remaining: ${timer}s`);
+        // console.log(`Time remaining: ${timer}s`);
 
         if (timer <= 0) {
             clearInterval(timerInterval);
